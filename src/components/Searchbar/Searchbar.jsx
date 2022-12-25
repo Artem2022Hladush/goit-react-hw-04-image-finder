@@ -1,36 +1,31 @@
 import {BsSearch} from "react-icons/bs"
-import React, { Component } from "react";
+import { useState } from "react";
 import css from "../Searchbar/Searchbar.module.css"
 import PropTypes from "prop-types"
 
 
 
-class Searchbar extends Component{
-	state= {
-		inputText: '',
-	}
+export function Searchbar({onSubmit}){
+	const [inputText, setInputText] = useState('')
 
-	static propTypes = {
-		onSubmit: PropTypes.func.isRequired,
-	};
 	
-	handleChange=e=> {
-		this.setState({inputText: e.currentTarget.value.toLowerCase()})
+	const handleChange=e=> {
+		setInputText(e.target.value)
 	}
 
-	handleSublmit=e=>{
+	const handleSublmit=e=>{
 		e.preventDefault();
 
-		if(this.state.inputText.trim() === '') {
+		if(inputText.trim() === '') {
 			return;
 		}
-		this.props.onSubmit(this.state.inputText);
-		this.setState({inputText: ''});
+		onSubmit(inputText);
+		setInputText('')
 	}
-	render() {
+	
 		return (
 			<header className={css.Searchbar}>
-		<form onSubmit={this.handleSublmit} className={css.SearchForm}>
+		<form onSubmit={handleSublmit} className={css.SearchForm}>
 			<button type="submit" className={css.SearchForm__button}>
 				<BsSearch />
 				<span className={css.SearchForm_button_label}></span>
@@ -39,17 +34,17 @@ class Searchbar extends Component{
 			<input
 			className={css.SearchForm__input}
 			type="text"
-			value={this.state.inputText}
+			value={inputText}
 			autoComplete="off"
 			autoFocus
 			placeholder="Search images and photos"
-			onChange={this.handleChange}
+			onChange={handleChange}
 			/>
 		</form>
 	</header>
 		)
-	}
-	
 };
 
-export default Searchbar;
+Searchbar.propTypes = {
+	onSubmit: PropTypes.func.isRequired,
+};

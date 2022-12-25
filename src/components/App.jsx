@@ -1,85 +1,91 @@
-import React,  { Component } from "react";
+import {useState, useEffect} from "react";
 import Notiflix from "notiflix";
 import api from "./service/api";
-import Searchbar from "./Searchbar/Searchbar";
+import {Searchbar} from "./Searchbar/Searchbar";
 import Loader from "./Loader/Loader";
 import Button from "./Button/Button";
 import ImageGallery from "./ImageGallery/ImageGallery";
-import Modal from "./Modal/Modal";
+import {Modal} from "./Modal/Modal";
 
 
 
-class App extends  Component{
-  state = {
-    page: 1,
-    query: ' ',
-    photo: [],
-    isLoading: false,
-    totalPages: 0,
-    showModal: false,
-    largeImage: ' ',
+export function App(){
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [photo, setPhoto] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [setTotalPages] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImage, setLargeImage] = useState('');
+  const [error, setError] = useState(null)
 
+useEffect(()=>{
+  if(query === '') {
+    return;
   }
 
-async componentDidUpdate(_, prevState) {
-  if (prevState.page !== this.state.page || 
-    prevState.query !== this.state.query) {
-      const {query, page}=this.state;
-      this.setState({ isLoading: true });
-
+  async function getImages() {
+    try {
+      setIsLoading(true);
       const response = await api
-        .fetchApi(query, page)
-        .catch(error => this.setState({ error }))
-        .finally( ()=>this.setState({ isLoading: false }))
-        console.log(response.data)
-        if (response.data.totalHits === 0)
-        {
+      .fetchImages(query, page)
+      .finally(() => setIsLoading(false))
+
+          response.then(images => {
+        if (images.data.totalHits === 0) {
           Notiflix.Notify.failure('Enter correct request');
-          this.setState({ images: [] });
+          setPhoto([]);
           return;
         }
-        response.data.hits.forEach(({id,webformatURL, tags, largeImageURL})=> {
-          return this.setState(prev=> ({
-            photo:[...prev.photo, {id,webformatURL, tags, largeImageURL}],
-            totalPages: Math.ceil(response.datatotalHits/12)
-          }))
-        })
+        images.data.hits.forEach(
+          ({ id, webformatURL, largeImageURL, tags }) => {
+            setPhoto(prev => [
+              ...prev,
+              { id, webformatURL, largeImageURL, tags },
+            ]);
+            setTotalPages(Math.ceil(images.data.totalHits / 12));
+            setIsLoading(false);
+          }
+        );
+      });
+    } catch  {
+      setError("Something went wrong. Try one more time.")
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  getImages();
+}, [query, page, setTotalPages, setError])
+
+const handleFormSubmit = name =>{
+  setPhoto([]);
+  setQuery(name);
+  setPage(1)
 }
 
-handleFormSubmit = (name) =>{
-  console.log(name);
-  this.setState({photo: [], query: name, page:1})
+
+const loadMore=()=> {
+  setPage(prev => prev +1)
 }
 
-
-loadMore=()=> {
-  this.setState(prevState=> ({page: prevState.page +1}))
+const togleModal=()=> {
+  setShowModal(prev => !prev)
 }
 
-togleModal=()=> {
-  this.setState(state => ({
-    showModal: !state.showModal
-  }))
+const onClick=(photo)=>{
+  setLargeImage(photo);
+  setShowModal(true)
 }
 
-onClick=(photo)=>{
-  this.setState({largeImage:photo,showModal:true})
-}
-
-render() {
-  const {isLoading, showModal, largeImage, photo,} = this.state;
   return (
     <>
-    <Searchbar onSubmit={this.handleFormSubmit}/>
+    <Searchbar onSubmit={handleFormSubmit}/>
     {isLoading && <Loader/>}
-    {showModal && <Modal src={largeImage} onClose={this.togleModal}/>}
-    <ImageGallery items={photo} onClick={this.onClick}/>
-    {photo.length!==0 &&  <Button onLoadMore={this.loadMore}/>}
-
+    {error && <p style={{color: 'red'}}>{error}</p>}
+    {showModal && <Modal src={largeImage} onClose={togleModal}/>}
+    <ImageGallery items={photo} onClick={onClick}/>
+    {photo.length!==0 &&  <Button onLoadMore={loadMore}/>}
     </>
     );
-}
 };
-
-export default App;
