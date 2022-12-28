@@ -50,16 +50,15 @@ useEffect(()=>{
       });
     } catch  {
       setError("Something went wrong. Try one more time.")
-    } finally {
       setIsLoading(false)
-    }
+    } 
   }
 
   getImages();
 }, [query, page, setTotalPages, setError])
 
 const handleFormSubmit = name =>{
-  setPhoto([ ]);
+  setPhoto([]);
   setQuery(name);
   setPage(1)
 }
