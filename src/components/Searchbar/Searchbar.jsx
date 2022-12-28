@@ -16,11 +16,11 @@ export function Searchbar({onSubmit}){
 	const handleSublmit=e=>{
 		e.preventDefault();
 
-		if(inputText.trim() === '') {
+		if(inputText.trim() === ' ') {
 			return;
 		}
 		onSubmit(inputText);
-		setInputText('')
+		setInputText(' ')
 	}
 	
 		return (

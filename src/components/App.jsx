@@ -11,7 +11,7 @@ import {Modal} from "./Modal/Modal";
 
 export function App(){
   const [page, setPage] = useState(1);
-  const [name, setName] = useState('');
+  const [query, setQuery] = useState('');
   const [photo, setPhoto] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [setTotalPages] = useState(0);
@@ -20,7 +20,7 @@ export function App(){
   const [error, setError] = useState(null)
 
 useEffect(()=>{
-  if(name === ' ') {
+  if(query === ' ') {
     return;
   }
 
@@ -28,7 +28,7 @@ useEffect(()=>{
     try {
       setIsLoading(true);
       const response = await api
-      .fetchImages(name, page)
+      .fetchApi(query, page)
       .finally(() => setIsLoading(false))
 
           response.then(images => {
@@ -56,11 +56,11 @@ useEffect(()=>{
   }
 
   getImages();
-}, [name, page, setTotalPages, setError])
+}, [query, page, setTotalPages, setError])
 
 const handleFormSubmit = name =>{
-  setPhoto([]);
-  setName(name);
+  setPhoto([ ]);
+  setQuery(name);
   setPage(1)
 }
 
