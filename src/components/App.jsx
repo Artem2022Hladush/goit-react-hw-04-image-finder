@@ -19,43 +19,45 @@ export function App(){
   const [largeImage, setLargeImage] = useState('');
   const [error, setError] = useState(null)
 
-useEffect(()=>{
-  if(query === ' ') {
-    return;
-  }
-
-  async function getImages() {
-    try {
-      setIsLoading(true);
-      const response = await api
-      .fetchApi(query, page)
-      .finally(() => setIsLoading(false))
-
-          response.then(images => {
-        if (images.data.totalHits === 0) {
-          Notiflix.Notify.failure('Enter correct request');
-          setPhoto([]);
-          return;
-        }
-        images.data.hits.forEach(
-          ({ id, webformatURL, largeImageURL, tags }) => {
-            setPhoto(prev => [
-              ...prev,
-              { id, webformatURL, largeImageURL, tags },
-            ]);
-            setTotalPages(Math.ceil(images.data.totalHits / 12));
-            setIsLoading(false);
+  useEffect(()=>{
+    if(query === ' ') {
+      return;
+    }
+  
+    async function getImages() {
+      try {
+        const response = await api
+        .fetchApi(query, page)
+        .then(images => {
+          setPhoto(prev => [...prev, ...images.data.hits]);
+        })
+        .finally(() => setIsLoading(false));
+  
+            response.then(images => {
+          if (images.data.totalHits === 0) {
+            Notiflix.Notify.failure('Enter correct request');
+            setPhoto([]);
+            return;
           }
-        );
-      });
-    } catch  {
-      setError("Something went wrong. Try one more time.")
-      setIsLoading(false)
-    } 
-  }
-
-  getImages();
-}, [query, page, setTotalPages, setError])
+          images.data.hits.forEach(
+            ({ id, webformatURL, largeImageURL, tags }) => {
+              setPhoto(prev => [
+                ...prev,
+                { id, webformatURL, largeImageURL, tags },
+              ]);
+              setTotalPages(Math.ceil(images.data.totalHits / 12));
+              setIsLoading(false);
+            }
+          );
+        });
+      } catch  {
+        setError("Something went wrong. Try one more time.")
+        setIsLoading(false)
+      } 
+    }
+  
+    getImages();
+  }, [query, page, setTotalPages, setError])
 
 const handleFormSubmit = name =>{
   setPhoto([]);
@@ -83,7 +85,7 @@ const onClick=(photo)=>{
     {isLoading && <Loader/>}
     {error && <p style={{color: 'red'}}>{error}</p>}
     {showModal && <Modal src={largeImage} onClose={togleModal}/>}
-    <ImageGallery items={photo} onClick={onClick}/>
+    {photo.length > 0 && <ImageGallery items={photo} onClick={onClick}/>}
     {photo.length!==0 &&  <Button onLoadMore={loadMore}/>}
     </>
     );
