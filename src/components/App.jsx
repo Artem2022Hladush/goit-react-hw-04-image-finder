@@ -14,50 +14,42 @@ export function App(){
   const [query, setQuery] = useState('');
   const [photo, setPhoto] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [setTotalPages] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [largeImage, setLargeImage] = useState('');
   const [error, setError] = useState(null)
 
-  useEffect(()=>{
-    if(query === ' ') {
+  useEffect(() => {
+    if (query === '') {
       return;
     }
-  
-    async function getImages() {
-      try {
-        const response = await api
+
+    try {
+      setIsLoading(true);
+      const response = api
         .fetchApi(query, page)
-        .then(images => {
-          setPhoto(prev => [...prev, ...images.data.hits]);
-        })
         .finally(() => setIsLoading(false));
-  
-            response.then(images => {
-          if (images.data.totalHits === 0) {
-            Notiflix.Notify.failure('Enter correct request');
-            setPhoto([]);
-            return;
+
+      response.then(images => {
+        if (images.data.totalHits === 0) {
+          Notiflix.Notify.failure('Enter correct request');
+          setPhoto([]);
+          return;
+        }
+        images.data.hits.forEach(
+          ({ id, webformatURL, largeImageURL, tags }) => {
+            setPhoto(prev => [
+              ...prev,
+              { id, webformatURL, largeImageURL, tags },
+            ]);
+            setIsLoading(false);
           }
-          images.data.hits.forEach(
-            ({ id, webformatURL, largeImageURL, tags }) => {
-              setPhoto(prev => [
-                ...prev,
-                { id, webformatURL, largeImageURL, tags },
-              ]);
-              setTotalPages(Math.ceil(images.data.totalHits / 12));
-              setIsLoading(false);
-            }
-          );
-        });
-      } catch  {
-        setError("Something went wrong. Try one more time.")
-        setIsLoading(false)
-      } 
+        );
+      });
+    } catch (error) {
+      setError(error);
+      setIsLoading(false);
     }
-  
-    getImages();
-  }, [query, page, setTotalPages, setError])
+  }, [query, page, setError])
 
 const handleFormSubmit = name =>{
   setPhoto([]);
